@@ -1,1 +1,1 @@
-This AHK script uses Capture2Text[capture2text.sourceforge.net] to idle the Idle Pins game on Kongregate(https://www.kongregate.com/games/Arkshija/idle-pins?promoted_listing=trending)
+This AHK script uses [Capture2Text](capture2text.sourceforge.net) to idle the Idle Pins game on [Kongregate](https://www.kongregate.com/games/Arkshija/idle-pins?promoted_listing=trending)
