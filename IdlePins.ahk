@@ -42,7 +42,6 @@ Return
 
 
 GrabTotalPins:
-MouseMove, 0, 0
 pinsText4 = "Error"
 s1 = cmd.exe /c Capture2Text\Capture2Text_CLI.exe -s "
 s2 := pinPos["PosX1"] " " pinPos["PosY1"] " " pinPos["PosX2"] " " pinPos["PosY2"]
