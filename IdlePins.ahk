@@ -57,36 +57,39 @@ Sleep, 2000
 FileRead, currentPins, OCR.txt
 
 ;Pull the strings from OCR except for the word Pins
-StringSplit, pinsText, currentPins , %A_Space% , "Pins"
-Trim(pinsText4)
-StringReplace, pinsText4, pinsText4, `r`n,,A
+pinsArray := StrSplit(currentPins , A_Space, "Pins")
+
+For k, v in pinsArray
+    pinsText .= v
+
+StringReplace, pinsText, pinsText, `r `n %A_Space%,,A
+lastPins := SubStr(pinsText, 4, 2)
+firstPins := SubStr(pinsText, 1, 2)
 
 ;What are the max pins I should expect & percent of min pins
 IniRead, maxPins, settings.ini, gameStats, MaxPins
 IniRead, pinPercent, settings.ini, gameStats, MinPinsPercent
-If (pinsText4 != maxPins){
+If (lastPins != maxPins){
     ;Pins didn't match. Log and wait
     FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-    FileAppend, %curTime%: Error in OCR. Expected %maxPins%. Found: %pinsText4% `n, log.txt
+    FileAppend, %curTime%: Error in OCR. Expected %maxPins%. Found: %lastPins% `n, log.txt
     Return
 }
 Else
     ;Pins matched. Log
     FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
     FileAppend, %curTime%: OCR Validated. %pinsText2%`n, log.txt
-    Trim(pinsText2)
-    StringReplace, pinsText2, pinsText2, `r`n,,A
     ;If Pins are getter than 42(MinPins) disable autocollect 
     ;Change min pins to percent
     pinPercent = 0.%pinPercent%
     minPins := Maxpins -(Round(maxPins*pinPercent))
-    If (pinsText2 >= minPins){
-        changeColor("r")
+    If (firstPins >= minPins){
+        changeColor("r", minPins)
         return
     }
     ;If Pins are less than 42(MinPins) enable autocollect
-    If (pinsText2 < minPins){
-        changeColor("g")
+    If (firstPins < minPins){
+        changeColor("g", minPins)
         return
     }
     ;Couldn't read Pin as a number. Log and error
@@ -96,7 +99,7 @@ Else
         return
     }
 
-changeColor(endResult)
+changeColor(endResult, minPins)
 {
     ;Assuming 1080p screen
     CoordMode, Pixel, Screen
@@ -124,13 +127,13 @@ changeColor(endResult)
     If (autoColor = evilColor){ ;Switch
         MouseClick, Left, %xAuto%, %yAuto%
         FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-        FileAppend, %curTime%: Tried to Change Color. Pins over %minsPins%`n, log.txt
+        FileAppend, %curTime%: Tried to Change Color. Pins over %minPins% `n, log.txt
         return
     }
 
     If (autoColor = goodColor) { ;Keep same
         FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-        FileAppend, %curTime%: Color was fine. Pins under %minPins%`n, log.txt
+        FileAppend, %curTime%: Color was fine. Pins under %minPins% `n, log.txt
         return
     }
     Else { ;Didn't find the right color
