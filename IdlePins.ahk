@@ -61,9 +61,9 @@ StringSplit, pinsText, currentPins , %A_Space% , "Pins"
 Trim(pinsText4)
 StringReplace, pinsText4, pinsText4, `r`n,,A
 
-;What are the max pins I should expect
+;What are the max pins I should expect & percent of min pins
 IniRead, maxPins, settings.ini, gameStats, MaxPins
-
+IniRead, pinPercent, settings.ini, gameStats, MinPinsPercent
 If (pinsText4 != maxPins){
     ;Pins didn't match. Log and wait
     FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
@@ -77,12 +77,15 @@ Else
     Trim(pinsText2)
     StringReplace, pinsText2, pinsText2, `r`n,,A
     ;If Pins are getter than 42(MinPins) disable autocollect 
-    If (pinsText2 >= 42){
+    ;Change min pins to percent
+    pinPercent = 0.%pinPercent%
+    minPins := Maxpins -(Round(maxPins*pinPercent))
+    If (pinsText2 >= minPins){
         changeColor("r")
         return
     }
     ;If Pins are less than 42(MinPins) enable autocollect
-    If (pinsText2 < 42){
+    If (pinsText2 < minPins){
         changeColor("g")
         return
     }
@@ -121,13 +124,13 @@ changeColor(endResult)
     If (autoColor = evilColor){ ;Switch
         MouseClick, Left, %xAuto%, %yAuto%
         FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-        FileAppend, %curTime%: Tried to Change Color`n, log.txt
+        FileAppend, %curTime%: Tried to Change Color. Pins over %minsPins%`n, log.txt
         return
     }
 
     If (autoColor = goodColor) { ;Keep same
         FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-        FileAppend, %curTime%: Color was fine`n, log.txt
+        FileAppend, %curTime%: Color was fine. Pins under %minPins%`n, log.txt
         return
     }
     Else { ;Didn't find the right color
