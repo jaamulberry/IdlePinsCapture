@@ -14,92 +14,92 @@ AutoPos := emptyAutoPos
 
 ReadPinCoords:
 ;Read Pin coordiantes from ini File
-IniRead, value, settings.ini, pinPos, X1
-pinPos["posX1"] := value
-IniRead, value, settings.ini, pinPos, Y1
-pinPos["posY1"] := value
-IniRead, value, settings.ini, pinPos, X2
-pinPos["posX2"] := value
-IniRead, value, settings.ini, pinPos, Y2
-pinPos["posY2"] := value
+IniRead, X1, settings.ini, pinPos, X1
+IniRead, Y1, settings.ini, pinPos, Y1
+IniRead, X2, settings.ini, pinPos, X2
+IniRead, Y2, settings.ini, pinPos, Y2
 
 
+;TODO #5 Create empty check if settings is off
 ;If (EmptyPinTotal = PinTotal)
     ;Gosub, GrabCoordinates
     ;GoSub, ReadPinTotal
 
-;Ever 20 Seconds check status of game
-SetTimer, CheckEverything, 20000
+;Every 40 Seconds check status of game
+SetTimer, CheckEverything, 40000
 
 
 CheckEverything:
-GoSub, GrabTotalPins
+GrabTotalPins(X1, Y1, X2, Y2)
 Return
 
 
 
-GrabTotalPins:
-;Don't reuse old value. Could not have been updated.
-pinsText4 = "Error"
+GrabTotalPins(X1, Y1, X2, Y2)
+{
+    ;Setup CMD command text
+    s1 = cmd.exe /c Capture2Text\Capture2Text_CLI.exe -s "
+    s2 := X1 " " Y1 " " X2 " " Y2
+    s3 = " -o OCR.txt
 
-;Setup CMD command text
-s1 = cmd.exe /c Capture2Text\Capture2Text_CLI.exe -s "
-s2 := pinPos["PosX1"] " " pinPos["PosY1"] " " pinPos["PosX2"] " " pinPos["PosY2"]
-s3 = " -o OCR.txt
+    ;Combine into one long string
+    target := s1 s2 s3
+    ;Minimize command prompt so it doesn't intefere with OCR
+    run, %target%,,Minimize
+    ;OCR is slower than script. Sleep for 2 seconds to make sure file is updated 
+    Sleep, 2000
+    ;Read OCR results
+    currentPins = Error
+    FileRead, currentPins, OCR.txt
 
-;Combine into one long string
-target := s1 s2 s3
-;Minimize command prompt so it doesn't intefere with OCR
-run, %target%,,Minimize
-;OCR is slower than script. Sleep for 2 seconds to make sure file is updated 
-Sleep, 2000
-;Read OCR results
-FileRead, currentPins, OCR.txt
+    ;Pull the strings from OCR except for the word Pins
+    pinsArray := "Error"
+    pinsArray := StrSplit(currentPins , A_Space, "Pins")
 
-;Pull the strings from OCR except for the word Pins
-pinsArray := StrSplit(currentPins , A_Space, "Pins")
+    For k, v in pinsArray
+        pinsText .= v
 
-For k, v in pinsArray
-    pinsText .= v
+    StringReplace, pinsText, pinsText, `r `n %A_Space%,,A
+    lastPins = Error
+    firstPins = Error
+    lastPins := SubStr(pinsText, 4, 2)
+    firstPins := SubStr(pinsText, 1, 2)
 
-StringReplace, pinsText, pinsText, `r `n %A_Space%,,A
-lastPins := SubStr(pinsText, 4, 2)
-firstPins := SubStr(pinsText, 1, 2)
-
-;What are the max pins I should expect & percent of min pins
-IniRead, maxPins, settings.ini, gameStats, MaxPins
-IniRead, pinPercent, settings.ini, gameStats, MinPinsPercent
-If (lastPins != maxPins){
-    ;Pins didn't match. Log and wait
-    FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-    FileAppend, %curTime%: Error in OCR. Expected %maxPins%. Found: %lastPins% `n, log.txt
-    Return
-}
-Else
-    ;Pins matched. Log
-    FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-    FileAppend, %curTime%: OCR Validated. %pinsText2%`n, log.txt
-    ;If Pins are getter than 42(MinPins) disable autocollect 
-    ;Change min pins to percent
-    pinPercent = 0.%pinPercent%
-    minPins := Maxpins -(Round(maxPins*pinPercent))
-    If (firstPins >= minPins){
-        changeColor("r", minPins)
-        return
-    }
-    ;If Pins are less than 42(MinPins) enable autocollect
-    If (firstPins < minPins){
-        changeColor("g", minPins)
-        return
-    }
-    ;Couldn't read Pin as a number. Log and error
-    Else {
+    ;What are the max pins I should expect & percent of min pins
+    IniRead, maxPins, settings.ini, gameStats, MaxPins
+    IniRead, pinPercent, settings.ini, gameStats, MinPinsPercent
+    If (lastPins != maxPins){
+        ;Pins didn't match. Log and wait
         FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-        FileAppend, %curTime%: Couldn't get pins number `n, log.txt
-        return
+        FileAppend, %curTime%: Error in OCR. Expected %maxPins%. Found: %lastPins% `n, log.txt
+        Return
     }
+    Else
+        ;Pins matched. Log
+        FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
+        FileAppend, %curTime%: OCR Validated: %lastPins%`n, log.txt
+        ;If Pins are getter than 42(MinPins) disable autocollect 
+        ;Change min pins to percent
+        pinPercent = 0.%pinPercent%
+        minPins := Maxpins -(Round(maxPins*pinPercent))
 
-changeColor(endResult, minPins)
+        If (firstPins >= minPins){
+            changeColor("r", minPins, firstPins)
+            return
+        }
+        ;If Pins are less than 42(MinPins) enable autocollect
+        If (firstPins < minPins){
+            changeColor("g", minPins, firstPins)
+            return
+        }
+        ;Couldn't read Pin as a number. Log and error
+        Else {
+            FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
+            FileAppend, %curTime%: Couldn't get pins number `n, log.txt
+            return
+        }
+}
+changeColor(endResult, minPins, curPins)
 {
     ;Assuming 1080p screen
     CoordMode, Pixel, Screen
@@ -108,8 +108,9 @@ changeColor(endResult, minPins)
     IniRead, xAuto, settings.ini, autoPos, X1
     IniRead, yAuto, settings.ini, autoPos, Y1
     ;Grab color
+    autoColor = 0
     PixelGetColor, autoColor, %xAuto%, %yAuto%
-    greenColor := 0x2F694B
+    greenColor = 0x2F694B
     redColor = 0x3232AC
 
     ;What is the end Result I want.
@@ -127,18 +128,18 @@ changeColor(endResult, minPins)
     If (autoColor = evilColor){ ;Switch
         MouseClick, Left, %xAuto%, %yAuto%
         FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-        FileAppend, %curTime%: Tried to Change Color. Pins over %minPins% `n, log.txt
+        FileAppend, %curTime%: Wrong color %evilColor% Detected. Tried to Change Color. Pin threshold %curPins%:%minPins%`n, log.txt
         return
     }
 
     If (autoColor = goodColor) { ;Keep same
         FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-        FileAppend, %curTime%: Color was fine. Pins under %minPins% `n, log.txt
+        FileAppend, %curTime%: Color was fine. Is %goodColor%. Pins threshold %curPins%:%minPins%`n, log.txt
         return
     }
     Else { ;Didn't find the right color
         FormatTime, curTime, , yyyy-MM-dd hh:mm:ss tt
-        FileAppend, %curTime%: wrong color found: %autoColor%`n, log.txt
+        FileAppend, %curTime%: wrong color found: %autoColor% Pins threshold %curPins%:%minPins%`n, log.txt
         return
     }
 }
