@@ -1,0 +1,18 @@
+2021-09-08 10:00:24 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:00:44 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:01:04 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:01:24 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:01:37 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:01:57 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:02:17 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:02:37 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:02:57 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:03:17 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:03:37 PM: Error in OCR. Expected 52. Found: "Error" 
+2021-09-08 10:03:48 PM: Error in OCR. Expected ERROR. Found: "Error" 
+2021-09-08 10:04:08 PM: Error in OCR. Expected ERROR. Found: 57 
+2021-09-08 10:04:28 PM: Error in OCR. Expected ERROR. Found: 57 
+2021-09-08 10:04:57 PM: OCR Validated. 28
+2021-09-08 10:04:57 PM: Tried to Change Color
+2021-09-08 10:05:17 PM: OCR Validated. 28
+2021-09-08 10:05:17 PM: Color was fine
